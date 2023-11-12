@@ -43,7 +43,7 @@ sample_data = pd.DataFrame({"Temperature": [24, 25, 27, 28, 28, 28, 28, 29, 30 ,
 
 
 
-df = pd.read_csv('HackPrinceton Plant Data.csv')
+df = pd.read_csv('../HackPrinceton Plant Data.csv')
 low_temp, high_temp = df[df['plant_name'] == crop]['temp_low'].values[0], df[df['plant_name'] == 'Corn']['temp_high'].values[0]
 low_h, high_h = df[df['plant_name'] == crop]['humidity_low'].values[0], df[df['plant_name'] == crop]['humidity_high'].values[0]
 
@@ -55,54 +55,10 @@ count_val = lambda x: (1 if x > high_h else 1 if x < low_h else 0)
 
 count_h = list(map(count_val, sample_data['Humidity'])).count(1)
 
-#Select Box
-add_selectbox = st.sidebar.selectbox(
-    "Which Module would you like to access?",
-    ("Apple_1", "Apple_2", "Tomato_1", "Tomato_3", "Corn_3", "Corn_1")
-)
 
-# Using "with" notation
-with st.sidebar:
-    if add_selectbox == 'Corn_1':
-        with st.spinner("Please wait..."):
-            time.sleep(3)
-    else:
-        st.write("Module Disconnected")
+###### Plotting data
 
-
-
-with header:
-    # st.title("Harvest Hero")
-    st.markdown(f"""# Harvest Hero""")
-
-
-    if st.button('Run Data Collection', use_container_width=True):
-        with st.spinner('Please wait...'):
-            time.sleep(2)
-        #input function to run 
-            
-        st.experimental_rerun()
-
-
-
-#     place.markdown("""
-# <div style="position: absolute; top: 0px; left: 250px;">
-#     <h1>Harvest Hero</h1>
-# </div>
-# """, unsafe_allow_html=True)
-    # st.title("Harvest Hero", anchor='center')
-
-
-
-
-
-
-with dataset:
-
-    col1, col2 = st.columns(2)
-   # Columns 
-    with col1: 
-        def plotChart():
+def plotChart():
             subheader_text = "Plant Optimal Data"
             centered_subheader = f"<h3 style='text-align: center;'>{subheader_text}</h3>"
             st.markdown(centered_subheader, unsafe_allow_html=True)
@@ -132,10 +88,56 @@ with dataset:
             # Show the plot
             st.pyplot(fig)
 
+
+#Select Box
+add_selectbox = st.sidebar.selectbox(
+    "Which Module would you like to access?",
+    ("Apple_1", "Apple_2", "Tomato_1", "Tomato_3", "Corn_3", "Corn_1")
+)
+
+# Using "with" notation
+with st.sidebar:
+    if add_selectbox == 'Corn_1':
+        with st.spinner("Please wait..."):
+            time.sleep(3)
+    else:
+        st.write("Module Disconnected")
+
+
+
+with header:
+    # st.title("Harvest Hero")
+    st.markdown(f"""# Harvest Hero""")
+
+
+    if st.button('Run Data Collection', use_container_width=True):
+        with st.spinner('Please wait...'):
+            time.sleep(2)
+        #input function to run 
         sample_data.loc[len(sample_data)] = [new_t, new_h]
         plotChart()
+        st.experimental_rerun()
 
 
+
+#     place.markdown("""
+# <div style="position: absolute; top: 0px; left: 250px;">
+#     <h1>Harvest Hero</h1>
+# </div>
+# """, unsafe_allow_html=True)
+    # st.title("Harvest Hero", anchor='center')
+
+
+
+
+
+
+with dataset:
+
+    col1, col2 = st.columns(2)
+   # Columns 
+    with col1:
+        plotChart()
 
         # Dialog boxes for temperature and Humidity readings 
         if count_h > 10: st.error('Danger: Extreme humidity readings! Consider crop relocation', icon ="🚨")
@@ -180,7 +182,7 @@ with dataset:
 
         
         col1, col2 = st.columns(2)
-        col1.metric("Soil Moisture", "{m}%".format(m = moisture), "1.2 °F")
-        col2.metric("Sun","{light}".format(light = sun_light[0]) , "-8%")
+        col1.metric("Soil Moisture", "{m}%".format(m = moisture), "1.2%")
+        col2.metric("Sun","{light}".format(light = sun_light[0]) , "33%")
         
     
