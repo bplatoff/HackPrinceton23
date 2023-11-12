@@ -1,3 +1,9 @@
+import socket
+import socket
+import pickle
+import struct
+import cv2
+
 from DiseaseClassifier import ResNetClassifer
 
 import cv2
@@ -60,38 +66,49 @@ else:
     DiseasePredictor.load_state_dict(torch.load("/content/siamese_triplet_model_cache.pth", map_location=torch.device('cpu')))
 DiseasePredictor.eval()
 
-# Open a connection to the camera (0 represents the default camera)
-cap = cv2.VideoCapture(0)
-
-# Define a transformation to preprocess the image before feeding it into the model
 transform = transforms.Compose([
     transforms.ToPILImage(),
     transforms.Resize((224, 224)),  # Assuming your model expects images of size (224, 224)
     transforms.ToTensor(),
 ])
 
-# List to accumulate predictions
 predictions = []
-
-# Time duration for capturing photos (in seconds)
-capture_duration = 20
-
-# Record the start time
 start_time = time.time()
+change_camera_angle_condition = False
 
-try:
-    while time.time() - start_time < capture_duration:
+# Set up socket
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.connect(("192.168.1.50", 5002))
+while True:
 
-        print("Beginning Capture")
+    if time.time()-start_time >= 20:
+            # Add your code to change the camera angle here
 
-        # Capture a frame
-        ret, frame = cap.read()
+            # Send a message back to the server indicating the camera angle change
+            message = "camera_angle_changed"
+            print("Sending Camera Change message")
+    else:
+         message = "continue"
+    s.sendall(message.encode("utf-8"))
 
-        # Convert the OpenCV BGR image to RGB
+    # Receive the length of the data
+    data_len = struct.unpack("L", s.recv(struct.calcsize("L")))[0]
+
+    # Receive the data
+    data = b""
+    while len(data) < data_len:
+        packet = s.recv(data_len - len(data))
+        if not packet:
+            break
+        data += packet
+
+    # Deserialize the received data
+    frame, additional_parameters = pickle.loads(data)
+
+    if frame is not None:
+        print("Applying Deep Learning Model")
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-        # Apply the defined transformations
-        input_tensor = transform(rgb_frame)
+        input_tensor = transform(frame)
         input_tensor = input_tensor.unsqueeze(0)  # Add batch dimension
 
         # Move the input tensor to the same device as the model
@@ -110,27 +127,11 @@ try:
         # Store the prediction in the list
         predictions.append((plant_type, disease_status, predicted_probability))
 
-        # Sleep for a short duration before capturing the next frame
-        time.sleep(1)
 
-except KeyboardInterrupt:
-    # Handle KeyboardInterrupt (e.g., when the user interrupts the cell execution)
-    pass
+    # Print additional parameters
+    print("Additional Parameters: ", additional_parameters)
+    print("Deep Learning Output: ", predictions[-1])
 
-finally:
-    # Release the camera
-    cap.release()
-    cv2.destroyAllWindows()
-
-# Analyze accumulated predictions
-if predictions:
-    # Calculate the average confidence and make a final decision
-    avg_confidence = sum(p[2] for p in predictions) / len(predictions)
-    final_decision = max(predictions, key=lambda x: x[2])  # Choose the prediction with the highest confidence
-
-    print("Final Decision:")
-    print("Plant Type: ", final_decision[0])
-    print("Disease Status: ", final_decision[1])
-    print(f'Average Confidence in Disease Assessment: {avg_confidence:.6f}%')
-else:
-    print("No predictions were made.")
+# except Exception as error:
+#     print(error)
+#     print("Something is going wrong :(")
