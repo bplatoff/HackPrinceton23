@@ -1,11 +1,26 @@
 // Example testing sketch for various DHT humidity/temperature sensors
 // Written by ladyada, public domain
-#include "Wire.h"
+
 #include "DHT.h"
-#define DHTTYPE DHT20   // DHT 20
+
+// Uncomment whatever type you're using!
+//#define DHTTYPE DHT11   // DHT 11
+#define DHTTYPE DHT22   // DHT 22  (AM2302)
+//#define DHTTYPE DHT21   // DHT 21 (AM2301)
+//#define DHTTYPE DHT10   // DHT 10
+//#define DHTTYPE DHT20   // DHT 20
+
 /*Notice: The DHT10 and DHT20 is different from other DHT* sensor ,it uses i2c interface rather than one wire*/
 /*So it doesn't require a pin.*/
-DHT dht(DHTTYPE);         //   DHT10 DHT20 don't need to define Pin
+#define DHTPIN 2     // what pin we're connected to（DHT10 and DHT20 don't need define it）
+DHT dht(DHTPIN, DHTTYPE);   //   DHT11 DHT21 DHT22
+//DHT dht(DHTTYPE);         //   DHT10 DHT20 don't need to define Pin
+
+// Connect pin 1 (on the left) of the sensor to +5V
+// Connect pin 2 of the sensor to whatever your DHTPIN is
+// Connect pin 4 (on the right) of the sensor to GROUND
+// Connect a 10K resistor from pin 2 (data) to pin 1 (power) of the sensor
+
 
 #if defined(ARDUINO_ARCH_AVR)
     #define debug  Serial
@@ -18,17 +33,15 @@ DHT dht(DHTTYPE);         //   DHT10 DHT20 don't need to define Pin
 
 void setup() {
 
-    //debug.begin(115200);
-    debug.begin(9600);
+    debug.begin(115200);
     debug.println("DHTxx test!");
     Wire.begin();
 
     /*if using WIO link,must pull up the power pin.*/
     // pinMode(PIN_GROVE_POWER, OUTPUT);
     // digitalWrite(PIN_GROVE_POWER, 1);
-    debug.println("Made it 1");
-    dht.begin(); //this is where we're getting stuck
-    debug.println("Made it 2");
+
+    dht.begin();
 }
 
 void loop() {
