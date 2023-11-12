@@ -1,0 +1,15 @@
+﻿plant_name,temp_low,temp_high,humidity_low,humidity_high,sunlight,low_moisture_percent,high_moisture_percent
+Apple,18,24,30,50,3,5,7
+Blueberry,15,24,40,50,5,4,6
+Cherry,18,24,40,60,4,5,7
+Corn,21,32,40,60,5,6,8
+Grape,15,32,30,50,5,5,7
+Orange,21,32,40,60,5,6,8
+Peach,18,27,30,50,4,6,8
+Bell Pepper,21,29,40,60,4,6,8
+Potato,15,20,80,90,4,5,7
+Raspberry,18,24,50,60,3,4,6
+Soybean,20,27,40,60,5,6,8
+Squash,21,32,50,70,5,6,8
+Strawberry,15,27,40,60,3,4,6
+Tomato,21,29,40,70,5,6,8
