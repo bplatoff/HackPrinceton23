@@ -73,7 +73,7 @@ transform = transforms.Compose([
 ])
 
 predictions = []
-
+start_time = time.time()
 change_camera_angle_condition = False
 
 # Set up socket
@@ -81,12 +81,15 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect(("192.168.1.50", 5002))
 while True:
 
-    if change_camera_angle_condition:
+    if time.time()-start_time >= 20:
             # Add your code to change the camera angle here
 
             # Send a message back to the server indicating the camera angle change
             message = "camera_angle_changed"
-            s.sendall(message.encode("utf-8"))
+            print("Sending Camera Change message")
+    else:
+         message = "continue"
+    s.sendall(message.encode("utf-8"))
 
     # Receive the length of the data
     data_len = struct.unpack("L", s.recv(struct.calcsize("L")))[0]
