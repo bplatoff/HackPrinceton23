@@ -28,6 +28,15 @@ def background_controller():
 	# implement check to see if we should be taking a photo
 	take_photo = True
 
+	try:
+		message = clientsocket.recv(1024).decode("utf-8")
+		if message == "change_camera_angle":
+			take_photo = False
+			# implement here
+		
+	except socket.error as e:
+		pass # No message received, ignore the error
+
 	if take_photo:
 		print("Capturing Image")
 		camera = cv2.VideoCapture(0)
@@ -41,7 +50,7 @@ def background_controller():
 	clientsocket.sendall(struct.pack("L", len(data)))
 	try:
 		clientsocket.sendall(data)
-	except Error as e:
+	except Exception as e:
 		print("Error experienced: " + e)	
 	Timer(5, background_controller).start()
 
