@@ -30,9 +30,17 @@ def background_controller():
 
 	try:
 		message = clientsocket.recv(1024).decode("utf-8")
-		if message == "change_camera_angle":
+		if message == "camera_angle_changed":
 			take_photo = False
-			# implement here
+			print("Change the Camera!")
+			ser.reset_input_buffer()
+			ser.write(b"turn\n")
+			while ser.in_waiting == 0:
+				time.sleep(.5)
+			line = ser.readline().decode('utf-8').rstrip()
+			if line == "turn_complete":
+				take_photo = True
+			
 		
 	except socket.error as e:
 		pass # No message received, ignore the error
@@ -57,6 +65,6 @@ def background_controller():
 while True:
 		clientsocket, address = s.accept()
 		print(f"Connection from {address} has been established.")
-		ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
+		ser = serial.Serial('/dev/ttyUSB1', 9600, timeout=1)
 		ser.reset_input_buffer()
 		background_controller()
