@@ -108,6 +108,7 @@ while True:
     if frame is not None:
         print("Applying Deep Learning Model")
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        cv2.imwrite('Test Images/CurrentImage.jpg',rgb_frame)
         input_tensor = transform(frame)
         input_tensor = input_tensor.unsqueeze(0)  # Add batch dimension
 
@@ -127,6 +128,14 @@ while True:
         # Store the prediction in the list
         predictions.append((plant_type, disease_status, predicted_probability))
 
+    data = [plant_type, disease_status, additional_parameters['Temperature'], additional_parameters['Humidity'], additional_parameters['Light Value'], additional_parameters['Moisture Value']]
+    file = open('Test Images/newdata.txt', 'wb')
+
+    # dump information to that file
+    pickle.dump(data, file)
+
+    # close the file
+    file.close()
 
     # Print additional parameters
     print("Additional Parameters: ", additional_parameters)

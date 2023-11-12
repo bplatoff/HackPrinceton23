@@ -4,6 +4,10 @@ import matplotlib.pyplot as plt
 import time
 from PIL import Image
 from io import BytesIO
+import os
+import pickle
+os.chdir('D:/Rutgers/ExtraProjects/HackPrinceton23/HackPrinceton23/')
+
 
 
 #st.set_config_file(path="./.streamlit/config.toml")
@@ -13,15 +17,22 @@ from io import BytesIO
 
 # count = st_autorefresh(interval=2000, limit=100, key="fizzbuzzcounter")
 
+file = open('Test Images/newData.txt', 'rb')
 
-plant_image = 'farm_corn.jpg'
-crop = "Corn"
-percentage_crop = 85
-percentage_disease = 90
-new_t = 33
-new_h = 68
+# dump information to that file
+data = pickle.load(file)
+
+# close the file
+file.close()
+
+plant_image = 'Test Images/CurrentImage.jpg'
+crop = data[0]
+percentage_disease = data[1]
+new_t = [int(i) for i in data[2].split() if i.isdigit()].join("")
+new_h = [int(i) for i in data[3].split() if i.isdigit()].join("")
+new_l = [int(i) for i in data[4].split() if i.isdigit()].join("")
 sun_light = ["Full Sun", "Part Shade", "Full Shade"]
-moisture = 10
+moisture = [int(i) for i in data[5].split() if i.isdigit()].join("")
 
 header = st.container()
 dataset = st.container()
