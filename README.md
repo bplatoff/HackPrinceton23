@@ -47,4 +47,7 @@ After just 3 epochs, we achieved the [first iteration](DiseasedCropClassifier_3e
 
 ![image](https://github.com/bplatoff/HackPrinceton23/assets/23532191/9e627dd0-874a-43e4-977e-c657984b48da)
 
+Crop Monitoring Dashboard: 
+
+![image](https://github.com/bplatoff/HackPrinceton23/assets/124309228/6d68cd86-a0a5-466a-ab1b-b49f6e71b935)
 
