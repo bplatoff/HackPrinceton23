@@ -43,7 +43,7 @@ ResNet utilizes a sequence of convolutional layers, skip layers, and pooling lay
 
 ![image](https://github.com/bplatoff/HackPrinceton23/assets/23532191/368efdd6-b796-443b-be79-32724842d0e0)
 
-After just 3 epochs, we achieved the [first iteration](DiseasedCropClassifier_3epochs_firstIteration_92ValAcc.pth) of our model which achieved a 92% accuracy on the validation dataset and took roughly 20 minutes to train. However, later in the project we decided to run the model for 5 epoch and obtain the [second iteration](DiseasedCropClassifier_5epochs_secondIteration.pth) which achieved a 96% accuracy on teh validation dataset. This second iteration took roughly 35 minutes to train.
+After just 3 epochs, we achieved the [first iteration](DiseasedCropClassifier_3epochs_firstIteration_92ValAcc.pth) of our model which achieved a 92% accuracy on the validation dataset and took roughly 20 minutes to train. However, later in the project we decided to run the model for 5 epoch and obtain the [second iteration](DiseasedCropClassifier_5epochs_secondIteration.pth) which achieved a 96% accuracy on the validation dataset. This second iteration took roughly 35 minutes to train.
 
 ![image](https://github.com/bplatoff/HackPrinceton23/assets/23532191/9e627dd0-874a-43e4-977e-c657984b48da)
 
