@@ -1,5 +1,5 @@
 # HackPrinceton23 - Harvest Hero: Cultivating Innovation
-*A code repository for Hack Princeton 2023. Team: Benjmain Platoff, Aaron Lozhkin, Simon Grishin*
+*A code repository for Hack Princeton 2023. Team: Benjamin Platoff, Aaron Lozhkin, Simon Grishin*
 
 Harvest Hero is a scalable IoT device that monitors crop health over time and throughout the season. We leverage advanced sensor data in tandem with deep learning techniques to provide the most accurate crop health reports. Harvest Hero aims to mitigate crop losses, boost yields, and contribute to sustainable agriculture by addressing key pain points in farming. 
 
