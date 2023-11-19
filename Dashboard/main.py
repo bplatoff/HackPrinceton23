@@ -95,6 +95,7 @@ with header:
         with st.spinner('Please wait...'):
             time.sleep(.2)
         
+        #this section is where we need to send 
         plant_image, crop, disease_status, percentage_disease, temp, humidity, light, moisture = load_data()
 
         # plotChart(sample_data)
