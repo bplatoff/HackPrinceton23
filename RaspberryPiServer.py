@@ -13,13 +13,13 @@ import struct
 
 #eecutes when command+z is sent
 def sigint_handler(signal, frame):
-	print (' Interrupted')
+	print(' Interrupted')
 	s.close()
 	sys.exit(0)
 
 signal.signal(signal.SIGTSTP, sigint_handler)
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind(('',5008))
+s.bind(('',5010))
 s.listen(5)
 ser = None
 print("Server is now running")
@@ -71,8 +71,7 @@ def background_controller():
 		# Prepare data as a dictionary
 		data = {"image": jpg_as_text, "params": params}
 	else:
-		data = {"image": None, "params": params}
-
+		data = {"image": 0, "params": params}
         
 	# Serialize to JSON
 	json_data = json.dumps(data)
@@ -81,8 +80,10 @@ def background_controller():
 	bytes_data = json_data.encode()
 
 	try:
+		# print(bytes_data)
 		# Send data length
-		clientsocket.sendall(struct.pack("L", len(bytes_data)))
+		clientsocket.sendall(struct.pack("Q", len(bytes_data)))
+		print(len(bytes_data))
 		
 		# Send data
 		clientsocket.sendall(bytes_data)
