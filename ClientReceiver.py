@@ -1,56 +1,18 @@
 import socket
-import socket
+import sys
+import signal
+import json
+import base64
+import time
 import pickle
 import struct
-import cv2
-
-from DiseaseClassifier import ResNetClassifer
-
+import numpy as np
 import cv2
 import torch
 import torch.nn.functional as F
 from torchvision import transforms
-from PIL import Image
-import time
 
-idx_to_class = {0: ('Apple', 'Apple Scab'),
-                1: ('Apple', 'Black Rot'),
-                2: ('Apple', 'Cedar Apple Rust'),
-                3: ('Apple', 'Healthy'),
-                4: ('Blueberry', 'Healthy'),
-                5: ('Cherry', 'Healthy'),
-                6: ('Cherry', 'Powdery Mildew'),
-                7: ('Corn', 'Cercospora Leaf Spot / Gray Leaf Spot'),
-                8: ('Corn', 'Common Rust'),
-                9: ('Corn', 'Healthy'),
-                10: ('Corn', 'Northern Leaf Blight'),
-                11: ('Grape', 'Black Rot'),
-                12: ('Grape', 'Esca (Black Measles)'),
-                13: ('Grape', 'Healthy'),
-                14: ('Grape', 'Leaf Blight (Isariopsis Leaf Spot)'),
-                15: ('Orange', 'Haunglongbing (Citrus Greening)'),
-                16: ('Peach', 'Bacterial Spot'),
-                17: ('Peach', 'Healthy'),
-                18: ('Bell Pepper', 'Bacterial Spot'),
-                19: ('Bell Pepper', 'Healthy'),
-                20: ('Potato', 'Early Blight'),
-                21: ('Potato', 'Healthy'),
-                22: ('Potato', 'Late Blight'),
-                23: ('Raspberry', 'Healthy'),
-                24: ('Soybean', 'Healthy'),
-                25: ('Squash', 'Powdery Mildew'),
-                26: ('Strawberry', 'Healthy'),
-                27: ('Strawberry', 'Leaf Scorch'),
-                28: ('Tomato', 'Bacterial Spot'),
-                29: ('Tomato', 'Early Blight'),
-                30: ('Tomato', 'Healthy'),
-                31: ('Tomato', 'Late Blight'),
-                32: ('Tomato', 'Leaf Mold'),
-                33: ('Tomato', 'Septoria Leaf Spot'),
-                34: ('Tomato', 'Spider Mites / Two-Spotted Spider Mite'),
-                35: ('Tomato', 'Target Spot'),
-                36: ('Tomato', 'Tomato Mosaic Virus'),
-                37: ('Tomato', 'Tomato Yellow Leaf Curl Virus')}
+from DiseaseClassifier import ResNetClassifer
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -76,39 +38,71 @@ predictions = []
 start_time = time.time()
 change_camera_angle_condition = False
 
+
 # Set up socket
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect(("192.168.1.50", 5002))
+s.connect(("192.168.1.168", 5008))
 while True:
 
-    if time.time()-start_time >= 20:
-            # Add your code to change the camera angle here
+    if time.time()-start_time >= 120:
+        start_time = time.time()
+        # Add your code to change the camera angle here
 
-            # Send a message back to the server indicating the camera angle change
-            message = "camera_angle_changed"
-            print("Sending Camera Change message")
+        # Send a message back to the server indicating the camera angle change
+        message = "camera_angle_changed"
+        print("Sending Camera Change message")
     else:
-         message = "continue"
+        message = "continue"
     s.sendall(message.encode("utf-8"))
 
-    # Receive the length of the data
-    data_len = struct.unpack("L", s.recv(struct.calcsize("L")))[0]
+    # Receive the data length
+    data_len_bytes = s.recv(struct.calcsize("L"))
+    if len(data_len_bytes) < struct.calcsize("L"):
+        print("Incomplete data length received")
+    else:
+        data_len = struct.unpack("L", data_len_bytes)[0]
 
-    # Receive the data
-    data = b""
-    while len(data) < data_len:
-        packet = s.recv(data_len - len(data))
-        if not packet:
-            break
-        data += packet
+        # Receive the data
+        data = b""
+        while len(data) < data_len:
+            packet = s.recv(data_len - len(data))
+            if not packet:
+                print("Connection closed or packet is empty")
+                break
+            data += packet
 
-    # Deserialize the received data
-    frame, additional_parameters = pickle.loads(data)
+        if len(data) == data_len:
+            try:
+                # Deserialize the received data from JSON
+                received_data = json.loads(data.decode())
+
+                # Extract the frame and additional parameters
+                jpg_as_text = received_data["image"]
+                additional_parameters = received_data["params"]
+
+                # Convert the base64 string back to numpy array
+                if jpg_as_text is not None:
+                    jpg_original = base64.b64decode(jpg_as_text)
+                    jpg_as_np = np.frombuffer(jpg_original, dtype=np.uint8)
+                    frame = cv2.imdecode(jpg_as_np, flags=1)
+
+                    # Further processing with frame...
+                else:
+                    frame = None
+                    # Further processing without frame...
+
+            except json.JSONDecodeError as e:
+                print(f"JSONDecodeError: {e}")
+        else:
+            print("Incomplete data received")
+            
+    disease_status = "Healthy"
+    predicted_probability = 67.345
 
     if frame is not None:
         print("Applying Deep Learning Model")
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        cv2.imwrite('Test Images/CurrentImage.jpg',rgb_frame)
+        # rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        cv2.imwrite('Test Images/CurrentImage.jpg',frame)
         input_tensor = transform(frame)
         input_tensor = input_tensor.unsqueeze(0)  # Add batch dimension
 
@@ -122,13 +116,14 @@ while True:
         probabilities = F.softmax(prediction, dim=1)
         predicted_probability, predicted_classes = probabilities.max(1)
         predicted_classes = predicted_classes.item()
-        plant_type, disease_status = idx_to_class[predicted_classes]
+        plant_type, disease_status = DiseasePredictor.idx_to_class[predicted_classes]
         predicted_probability = predicted_probability.item() * 100
+
 
         # Store the prediction in the list
         predictions.append((plant_type, disease_status, predicted_probability))
 
-    data = [plant_type, disease_status, additional_parameters['Temperature'], additional_parameters['Humidity'], additional_parameters['Light Value'], additional_parameters['Moisture Value']]
+    data = [disease_status, predicted_probability, additional_parameters['Temperature'], additional_parameters['Humidity'], additional_parameters['Light Value'], additional_parameters['Moisture Value']]
     file = open('Test Images/newdata.txt', 'wb')
 
     # dump information to that file
@@ -136,10 +131,6 @@ while True:
 
     # close the file
     file.close()
-
-    # Print additional parameters
-    print("Additional Parameters: ", additional_parameters)
-    print("Deep Learning Output: ", predictions[-1])
 
 # except Exception as error:
 #     print(error)
