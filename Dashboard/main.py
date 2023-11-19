@@ -58,10 +58,16 @@ low_h, high_h = df[df['plant_name'] == crop]['humidity_low'].values[0], df[df['p
 file = open('Test Images/update.txt', 'rb')
 sample_data = pickle.load(file)
 
-count_val = lambda x: (1 if x > high_temp else 1 if x < low_temp else 0)
-count_temp = list(map(count_val, sample_data['Temperature'])).count(1)
-count_val = lambda x: (1 if x > high_h else 1 if x < low_h else 0)
-count_h = list(map(count_val, sample_data['Humidity'])).count(1)
+
+def runCount():
+    count_val = lambda x: (1 if x > high_temp else 1 if x < low_temp else 0)
+    count_temp = list(map(count_val, sample_data['Temperature'])).count(1)
+    count_val = lambda x: (1 if x > high_h else 1 if x < low_h else 0)
+    count_h = list(map(count_val, sample_data['Humidity'])).count(1)
+
+    return [count_temp, count_h]
+
+
 sun_light = ["Full Sun", "Part Shade", "Full Shade"]
 
 file = open('Test Images/update.txt', 'rb')
@@ -140,6 +146,7 @@ with dataset:
         # plotChart(sample_data)
 
         # Dialog boxes for temperature and Humidity readings 
+        [count_temp, count_h] = runCount()
         if count_h > 10: st.error('Danger: Extreme humidity readings! Consider crop relocation', icon ="🚨")
         elif count_h > 5: st.warning("Warning: Volatile humidity readings\n Check {} crop".format(crop), icon="⚠️")
         else: st.success('Safe: Humidity Levels normal', icon="✅")
@@ -200,6 +207,8 @@ while True:
 
     with open('Test Images/update.txt', 'wb') as file:
         pickle.dump(sample_data, file)
+
+    [count_temp, count_h] = runCount()
 
     ax2.plot(sample_data['Humidity'], marker='o', color=[0.148,0.42, 0.16], label='Humidity')
     ax1.plot(sample_data['Temperature'], marker='o', color=[0.18, 0.32, 0.70], label='Temperature')
