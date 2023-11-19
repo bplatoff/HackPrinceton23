@@ -1,11 +1,13 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import time
 from PIL import Image
 from io import BytesIO
 import os
 import pickle
+
 os.chdir('D:/Rutgers/ExtraProjects/HackPrinceton23/HackPrinceton23/')
 
 
@@ -31,8 +33,11 @@ percentage_disease = data[1]
 new_t = [int(i) for i in data[2].split() if i.isdigit()].join("")
 new_h = [int(i) for i in data[3].split() if i.isdigit()].join("")
 new_l = [int(i) for i in data[4].split() if i.isdigit()].join("")
+sunlight_index = 3
 sun_light = ["Full Sun", "Part Shade", "Full Shade"]
 moisture = [int(i) for i in data[5].split() if i.isdigit()].join("")
+old_m = moisture[-1]
+new_m = moisture[0]
 
 header = st.container()
 dataset = st.container()
@@ -42,17 +47,17 @@ sample_data = pd.DataFrame({"Temperature": [24, 25, 27, 28, 28, 28, 28, 29, 30 ,
                             "Humidity": [65, 70, 69, 66, 66, 66, 66, 66, 65, 64, 66, 63, 62, 66, 65]})
 
 
-
+## Get datatable with ideal conditions 
 df = pd.read_csv('../HackPrinceton Plant Data.csv')
 low_temp, high_temp = df[df['plant_name'] == crop]['temp_low'].values[0], df[df['plant_name'] == 'Corn']['temp_high'].values[0]
 low_h, high_h = df[df['plant_name'] == crop]['humidity_low'].values[0], df[df['plant_name'] == crop]['humidity_high'].values[0]
 
+## Count number of temperature values out of bounds
 count_val = lambda x: (1 if x > high_temp else 1 if x < low_temp else 0)
-
 count_temp = list(map(count_val, sample_data['Temperature'])).count(1)
 
+## Count number of humidity values out of bounds 
 count_val = lambda x: (1 if x > high_h else 1 if x < low_h else 0)
-
 count_h = list(map(count_val, sample_data['Humidity'])).count(1)
 
 
@@ -89,13 +94,19 @@ def plotChart():
             st.pyplot(fig)
 
 
-#Select Box
+#Select Box in sidebar and spinner returns "please wait" when selecting "Corn_1" otherwise
 add_selectbox = st.sidebar.selectbox(
     "Which Module would you like to access?",
     ("Apple_1", "Apple_2", "Tomato_1", "Tomato_3", "Corn_3", "Corn_1")
 )
 
-# Using "with" notation
+'''
+ Sidebar and spinner returns "please wait" when selecting "Corn_1" otherwise
+ returns "module diconnected" to add more modules, the sidebar will
+ have to call the reload function with a new dataset
+
+ later demos
+'''
 with st.sidebar:
     if add_selectbox == 'Corn_1':
         with st.spinner("Please wait..."):
@@ -105,18 +116,32 @@ with st.sidebar:
 
 
 
+## Header (needs an update to the HTML to make it bigger and centered)
 with header:
     # st.title("Harvest Hero")
     st.markdown(f"""# Harvest Hero""")
 
-
+### Data Collection button will reload the page for 
     if st.button('Run Data Collection', use_container_width=True):
         with st.spinner('Please wait...'):
-            time.sleep(2)
-        #input function to run 
-        sample_data.loc[len(sample_data)] = [new_t, new_h]
-        plotChart()
-        st.experimental_rerun()
+            time.sleep(2)       
+        
+        #######################
+        '''
+        
+                input function to pull new data and save in new_t and new_h 
+        
+                Make sure new_t and new_h is an array
+        
+        '''
+        #######################
+        
+        
+        x = len(new_t)
+        sample_data = sample_data.iloc[x:,:]
+        sample_data = pd.concat([sample_data, pd.DataFrame(data = np.column_stack([new_t, new_h]), columns = ['Temperature', 'Humidity'])], ignore_index= True)
+        plotChart()         ## plots the chart
+        st.experimental_rerun()        ## Reruns the whole window
 
 
 
@@ -163,15 +188,21 @@ with dataset:
             st.image(image, caption=str(crop), width=400)
 
         load_image()
-        st.info(f"""**Crop Classification Accuracy:** {percentage_crop}%""")
         # st.markdown(f"""**Crop Classification Accuracy: {percentage_crop}**%""")
         st.info(f"""**Disease Classification Accuracy:** {percentage_disease}%""")
         ## Place Holder
 
-
+        ## Reload the image
         if st.button('Reload', use_container_width=True):
             with st.spinner('Loading Image...'):
                 time.sleep(2)
+
+                '''
+                Add the code to get the image
+                '''
+                plant_image = "Test Images/ ::::: Fill image name here :::::"
+                load_image()
+            
 
 
 
@@ -182,7 +213,12 @@ with dataset:
 
         
         col1, col2 = st.columns(2)
-        col1.metric("Soil Moisture", "{m}%".format(m = moisture), "1.2%")
-        col2.metric("Sun","{light}".format(light = sun_light[0]) , "33%")
+        moisture_increase = ((new_m / old_m) - 1) * 100
+        sun_increase = sunlight_index
+
+        col1.metric("Soil Moisture", "{m}%".format(m = moisture),
+                     "{m_increase}%".format(m_increase = moisture_increase))
+        col2.metric("Sun","{light}".format(light = sun_light[0]) , 
+                    "{s_increase}x".format(s_increase = sun_increase))
         
     
