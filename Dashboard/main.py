@@ -1,12 +1,14 @@
 import streamlit as st
 import socket
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import time
 from PIL import Image
 from io import BytesIO
 import os
 import pickle
+
 
 os.chdir('D:/Rutgers/ExtraProjects/HackPrinceton23/HackPrinceton23/')
 
@@ -66,7 +68,18 @@ dataset = st.container()
 features = st.container()
 model_training = st.container()
 
-# Using "with" notation
+header = st.container()
+dataset = st.container()
+features = st.container()
+model_training = st.container()
+
+'''
+ Sidebar and spinner returns "please wait" when selecting "Corn_1" otherwise
+ returns "module diconnected" to add more modules, the sidebar will
+ have to call the reload function with a new dataset
+
+ later demos
+'''
 with st.sidebar:
     if add_selectbox == 'Corn_1':
         with st.spinner("Please wait..."):
@@ -75,29 +88,12 @@ with st.sidebar:
         st.write("Module Disconnected")
 
 
-time.sleep(1)
-
-# Load in arduino and DL data
-plant_image, crop, disease_status, percentage_disease, temp, humidity, light, moisture = load_data()
-
-df = pd.read_csv('HackPrinceton Plant Data.csv')
-low_temp, high_temp = df[df['plant_name'] == crop]['temp_low'].values[0], df[df['plant_name'] == 'Corn']['temp_high'].values[0]
-low_h, high_h = df[df['plant_name'] == crop]['humidity_low'].values[0], df[df['plant_name'] == crop]['humidity_high'].values[0]
-
-file = open('Test Images/update.txt', 'rb')
-sample_data = pickle.load(file)
-
-count_val = lambda x: (1 if x > high_temp else 1 if x < low_temp else 0)
-count_temp = list(map(count_val, sample_data['Temperature'])).count(1)
-count_val = lambda x: (1 if x > high_h else 1 if x < low_h else 0)
-count_h = list(map(count_val, sample_data['Humidity'])).count(1)
-sun_light = ["Full Sun", "Part Shade", "Full Shade"]
 
 with header:
     # st.title("Harvest Hero")
     st.markdown(f"""# Harvest Hero""")
 
-
+### Data Collection button will reload the page for 
     if st.button('Run Data Collection', use_container_width=True):
         with st.spinner('Please wait...'):
             time.sleep(.2)
@@ -166,9 +162,17 @@ with dataset:
         st.info(f"""**Disease Classification Confidence:** {percentage_disease}%""")
         ## Place Holder
 
+        ## Reload the image
         if st.button('Reload', use_container_width=True):
             with st.spinner('Loading Image...'):
                 time.sleep(2)
+
+                '''
+                Add the code to get the image
+                '''
+                plant_image = "Test Images/ ::::: Fill image name here :::::"
+                load_image()
+            
 
 
 
@@ -179,6 +183,13 @@ with dataset:
 
         
         col1, col2 = st.columns(2)
+        moisture_increase = ((new_m / old_m) - 1) * 100
+        sun_increase = sunlight_index
+
+        col1.metric("Soil Moisture", "{m}%".format(m = moisture),
+                     "{m_increase}%".format(m_increase = moisture_increase))
+        col2.metric("Sun","{light}".format(light = sun_light[0]) , 
+                    "{s_increase}x".format(s_increase = sun_increase))
         col1.metric("Soil Moisture", "{m}%".format(m = moisture/100), "1.2%")
         col2.metric("Sun","{light}".format(light = sun_light[0]) , "33%")
             
