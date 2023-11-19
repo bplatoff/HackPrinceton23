@@ -44,7 +44,12 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect(("192.168.1.168", 5010))
 while True:
 
-    if time.time()-start_time >= 120:
+    with open('Test Images/switch_camera.txt', 'rb') as file:
+        is_camera_change = False
+
+    print(is_camera_change)
+
+    if is_camera_change:
         start_time = time.time()
         # Add your code to change the camera angle here
 
