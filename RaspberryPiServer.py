@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import signal
+import sys
 import serial
 import socket
 import time
@@ -7,8 +9,15 @@ import cv2
 import pickle
 import struct
 
+#eecutes when command+z is sent
+def sigint_handler(signal, frame):
+	print (' Interrupted')
+	s.close()
+	sys.exit(0)
+
+signal.signal(signal.SIGTSTP, sigint_handler)
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind(('',5002))
+s.bind(('',5008))
 s.listen(5)
 ser = None
 print("Server is now running")
@@ -65,6 +74,6 @@ def background_controller():
 while True:
 		clientsocket, address = s.accept()
 		print(f"Connection from {address} has been established.")
-		ser = serial.Serial('/dev/ttyUSB1', 9600, timeout=1)
+		ser = serial.Serial('/dev/tty.usbserial-0001', 9600, timeout=1)
 		ser.reset_input_buffer()
 		background_controller()
