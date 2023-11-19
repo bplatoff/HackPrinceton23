@@ -95,9 +95,11 @@ with header:
         with st.spinner('Please wait...'):
             time.sleep(.2)
         
-        plant_image, crop, disease_status, percentage_disease, temp, humidity, light, moisture = load_data()
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect(("192.168.1.168", 5010))
+        message = "camera_angle_changed"
+        s.sendall(message.encode("utf-8"))
 
-        # plotChart(sample_data)
         st.rerun()
 
 
@@ -195,7 +197,9 @@ while True:
     file = open('Test Images/update.txt', 'rb')
     sample_data = pickle.load(file)
     # Append the new data
-    sample_data = sample_data.append({"Temperature": temp/100, "Humidity": humidity/100}, ignore_index=True)
+    new_row = pd.DataFrame({"Temperature": [temp/100], "Humidity": [humidity/100]})
+    sample_data = pd.concat([sample_data, new_row], ignore_index=True)
+
     st.write(temp)
     st.write(humidity)
 
