@@ -41,7 +41,7 @@ change_camera_angle_condition = False
 
 # Set up socket
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect(("192.168.1.168", 5009))
+s.connect(("192.168.1.168", 5010))
 while True:
 
     if time.time()-start_time >= 120:
