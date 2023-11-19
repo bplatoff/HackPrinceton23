@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import signal
 import sys
+import json
 import serial
+import base64
 import socket
 import time
 from threading import Timer
@@ -59,16 +61,35 @@ def background_controller():
 		camera = cv2.VideoCapture(0)
 		ret, frame = camera.read()
 		camera.release()
-		data = pickle.dumps((frame, params))
+
+		# Encode the frame in JPEG format
+		retval, buffer = cv2.imencode('.jpg', frame)
+		
+		# Convert to base64 encoding and decode to string
+		jpg_as_text = base64.b64encode(buffer).decode()
+
+		# Prepare data as a dictionary
+		data = {"image": jpg_as_text, "params": params}
 	else:
-		data = pickle.dumps((0, params))
+		data = {"image": None, "params": params}
 
         
-	clientsocket.sendall(struct.pack("L", len(data)))
+	# Serialize to JSON
+	json_data = json.dumps(data)
+
+	# Convert to bytes
+	bytes_data = json_data.encode()
+
 	try:
-		clientsocket.sendall(data)
+		# Send data length
+		clientsocket.sendall(struct.pack("L", len(bytes_data)))
+		
+		# Send data
+		clientsocket.sendall(bytes_data)
+
 	except Exception as e:
-		print("Error experienced: " + e)	
+		print(f"Error experienced: {e}")
+		
 	Timer(5, background_controller).start()
 
 while True:

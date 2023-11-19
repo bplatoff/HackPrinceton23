@@ -1,4 +1,5 @@
 import streamlit as st
+import socket
 import pandas as pd
 import matplotlib.pyplot as plt
 import time
@@ -26,24 +27,25 @@ data = pickle.load(file)
 file.close()
 
 plant_image = 'Test Images/CurrentImage.jpg'
-crop = data[0]
+crop = "Corn"
+disease_status = data[0]
 percentage_disease = data[1]
-new_t = [int(i) for i in data[2].split() if i.isdigit()].join("")
-new_h = [int(i) for i in data[3].split() if i.isdigit()].join("")
-new_l = [int(i) for i in data[4].split() if i.isdigit()].join("")
+new_t = int(''.join(filter(str.isdigit, data[2])))
+new_h = int(''.join(filter(str.isdigit, data[3])))
+new_l = int(''.join(filter(str.isdigit, data[4])))
 sun_light = ["Full Sun", "Part Shade", "Full Shade"]
-moisture = [int(i) for i in data[5].split() if i.isdigit()].join("")
+moisture = int(''.join(filter(str.isdigit, data[5])))
 
 header = st.container()
 dataset = st.container()
 features = st.container()
 model_training = st.container()
-sample_data = pd.DataFrame({"Temperature": [24, 25, 27, 28, 28, 28, 28, 29, 30 ,30 ,29, 30 ,30 ,30, 32],
-                            "Humidity": [65, 70, 69, 66, 66, 66, 66, 66, 65, 64, 66, 63, 62, 66, 65]})
+sample_data = pd.DataFrame({"Temperature": [23, 25, 27, 24, 22, 28, 25, 24],
+                            "Humidity": [45, 44, 50, 54, 55, 52, 48, 49]})
 
 
 
-df = pd.read_csv('../HackPrinceton Plant Data.csv')
+df = pd.read_csv('HackPrinceton Plant Data.csv')
 low_temp, high_temp = df[df['plant_name'] == crop]['temp_low'].values[0], df[df['plant_name'] == 'Corn']['temp_high'].values[0]
 low_h, high_h = df[df['plant_name'] == crop]['humidity_low'].values[0], df[df['plant_name'] == crop]['humidity_high'].values[0]
 
@@ -113,8 +115,16 @@ with header:
     if st.button('Run Data Collection', use_container_width=True):
         with st.spinner('Please wait...'):
             time.sleep(2)
-        #input function to run 
-        sample_data.loc[len(sample_data)] = [new_t, new_h]
+            
+        # Append the new data
+        sample_data = sample_data.append({"Temperature": new_t, "Humidity": new_h}, ignore_index=True)
+
+        # Drop the first row to keep the DataFrame length consistent
+        sample_data = sample_data.drop(sample_data.index[0])
+
+        # Reset the index after dropping the row
+        sample_data = sample_data.reset_index(drop=True)
+
         plotChart()
         st.experimental_rerun()
 
@@ -126,10 +136,6 @@ with header:
 # </div>
 # """, unsafe_allow_html=True)
     # st.title("Harvest Hero", anchor='center')
-
-
-
-
 
 
 with dataset:
@@ -154,20 +160,16 @@ with dataset:
         subheader_text = "Image Data"
         centered_subheader = f"<h3 style='text-align: center;'>{subheader_text}</h3>"
         st.markdown(centered_subheader, unsafe_allow_html=True)
-
-
         
         def load_image():
-
             image = Image.open(plant_image)
             st.image(image, caption=str(crop), width=400)
 
         load_image()
-        st.info(f"""**Crop Classification Accuracy:** {percentage_crop}%""")
         # st.markdown(f"""**Crop Classification Accuracy: {percentage_crop}**%""")
-        st.info(f"""**Disease Classification Accuracy:** {percentage_disease}%""")
+        st.info(f"""**Disease Evaluation:** {disease_status}""")
+        st.info(f"""**Disease Classification Confidence:** {percentage_disease}%""")
         ## Place Holder
-
 
         if st.button('Reload', use_container_width=True):
             with st.spinner('Loading Image...'):
@@ -182,7 +184,7 @@ with dataset:
 
         
         col1, col2 = st.columns(2)
-        col1.metric("Soil Moisture", "{m}%".format(m = moisture), "1.2%")
+        col1.metric("Soil Moisture", "{m}%".format(m = moisture/100), "1.2%")
         col2.metric("Sun","{light}".format(light = sun_light[0]) , "33%")
         
     
