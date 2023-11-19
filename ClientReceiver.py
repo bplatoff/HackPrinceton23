@@ -41,7 +41,7 @@ change_camera_angle_condition = False
 
 # Set up socket
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect(("192.168.1.168", 5008))
+s.connect(("192.168.1.168", 5009))
 while True:
 
     if time.time()-start_time >= 120:
@@ -56,11 +56,12 @@ while True:
     s.sendall(message.encode("utf-8"))
 
     # Receive the data length
-    data_len_bytes = s.recv(struct.calcsize("L"))
-    if len(data_len_bytes) < struct.calcsize("L"):
+    data_len_bytes = s.recv(struct.calcsize("Q"))
+    if len(data_len_bytes) < struct.calcsize("Q"):
         print("Incomplete data length received")
     else:
-        data_len = struct.unpack("L", data_len_bytes)[0]
+        data_len = struct.unpack("Q", data_len_bytes)[0]
+        print("Received Data of Length: ", data_len)
 
         # Receive the data
         data = b""
@@ -81,7 +82,7 @@ while True:
                 additional_parameters = received_data["params"]
 
                 # Convert the base64 string back to numpy array
-                if jpg_as_text is not None:
+                if jpg_as_text != 0:
                     jpg_original = base64.b64decode(jpg_as_text)
                     jpg_as_np = np.frombuffer(jpg_original, dtype=np.uint8)
                     frame = cv2.imdecode(jpg_as_np, flags=1)
@@ -123,6 +124,7 @@ while True:
         # Store the prediction in the list
         predictions.append((plant_type, disease_status, predicted_probability))
 
+    print("Received Parameters: ", additional_parameters)
     data = [disease_status, predicted_probability, additional_parameters['Temperature'], additional_parameters['Humidity'], additional_parameters['Light Value'], additional_parameters['Moisture Value']]
     file = open('Test Images/newdata.txt', 'wb')
 
