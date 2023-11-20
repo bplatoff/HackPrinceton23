@@ -185,7 +185,19 @@ with dataset:
         col1.metric("Soil Moisture", "{m}%".format(m = moisture/100), "1.2%")
         col2.metric("Sun","{light}".format(light = sun_light[0]) , "33%")
             
-        
+@st.cache_resource
+def set_socket():
+    ## Call function
+    # message = ClientReceiver.connectServer()
+    message = 'Successfully Connected'
+    print(message)
+
+def main():
+    set_socket()
+
+if __name__ == '__main__':
+    main()
+
 while True:
     time.sleep(1)
     with st.spinner('Please wait...'):
