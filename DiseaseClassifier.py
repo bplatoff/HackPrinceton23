@@ -56,6 +56,12 @@ class ResNetClassifer(nn.Module):
                 36: ('Tomato', 'Tomato Mosaic Virus'),
                 37: ('Tomato', 'Tomato Yellow Leaf Curl Virus')}
 
+        self.transform = transforms.Compose([
+            transforms.ToPILImage(),
+            transforms.Resize((224, 224)),  # Assuming your model expects images of size (224, 224)
+            transforms.ToTensor(),
+        ])
+
         # Use a pre-trained ResNet model from Hugging Face
         self.resnet_model = resnet50(weights=ResNet50_Weights.DEFAULT)
 
@@ -77,3 +83,38 @@ class ResNetClassifer(nn.Module):
 
     def forward(self, x):
         return self.resnet_model(x)
+    
+    def loadModel(self):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if not torch.cuda.is_available(): print("WARNING: Model will run extremely slow on cpu")
+
+        if torch.cuda.is_available():
+            self.load_state_dict(torch.load("DiseasedCropClassifier_5epochs_secondIteration.pth"))
+        else:
+            print("WARNING: Model will run extremely slow on cpu. If on colab, go to Runtime->Change Runtime Type->Hardware Accelerator->GPU.")
+            self.load_state_dict(torch.load("/content/siamese_triplet_model_cache.pth", map_location=torch.device('cpu')))
+
+        self.to(self.device)
+        self.eval()
+    
+    def apply(self, x):
+        # Utility function for returning all data reprsented by one pass of the model
+        # input: RGB frame from a camera
+
+        input_tensor = self.transform(x)
+        input_tensor = input_tensor.unsqueeze(0)  # Add batch dimension
+
+        # Move the input tensor to the same device as the model
+        input_tensor = input_tensor.to(self.device)
+
+        # Forward pass through the model
+        with torch.no_grad():
+            prediction = self.forward(input_tensor)
+        
+        probabilities = F.softmax(prediction, dim=1)
+        predicted_probability, predicted_classes = probabilities.max(1)
+        predicted_classes = predicted_classes.item()
+        plant_type, disease_status = self.idx_to_class[predicted_classes]
+        predicted_probability = predicted_probability.item() * 100
+
+        return plant_type, disease_status, predicted_probability
