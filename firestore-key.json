@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "harvesthero-9b090",
+  "private_key_id": "5b4e5af38c9889b7e8b7a5e95d5442be47713867",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDH3qCksgnmoRgK\nHqy4YQCsB0eZ3i4FXoL2TJ7yeW7LrR/tMuWbQQ9/iPUdH1O/yN2xQFLU8h1eg+i+\nZamHBzQgYXPxat7aUflfnQMrkTMqXNpr8Z372msaXLyOJjyHEud7E8rsjjUo1ro6\nWJcH+0sIS1UU5EXEaRjSqLX0L//2ag/s4sVa2WujdZjHZpb97xPK4cugsx0zjn3e\ndnXNAzFyETzJMx+yE++p0iR1ajBfiOcUCaiKtZ8j48F9dCIKB8g3kvj90LzrNNIJ\n+YBUBp3YgZHw2ZLZu8CeHk9fXq+p+1dgrLSXKMKFGXp7CA71CQrGUEI+X8CQ403q\nAA0F8FhzAgMBAAECggEAB8snEXT9zNfwQ4jBrGjf6VVZVecjfUMbsTX4prTUfK2y\nBoJLELw/OfZhtHKBxgMzndNHx5TvTz2uiCoXq7O8tRyHtFy59uJmanOJaZv+VkML\no1TnF6iDL6J5GcPk7VFv5E03xvSenwqMdXT54q5KVTb2yNtD2y5L8P7yJWTvwrB7\nSzCePBbb3IhJd8Wd0x8WM909Af8NWOSgXpfOXWjn57oOvWs8pLuNlCCuIY01cV0m\nzw+n2tm7TJR4/owrz2PL2CTSGw4IT6k4OTTRuCjXd+O0u8ApiZ8Y/NgNhCDhfIWt\nXNmSBKOxd+6oooNAt3haqpKIX6pau3Wc9CB5LYpLrQKBgQD/008Wq440vwLLL+4u\nppaNP2O0jc6MfTD5gPvmzO3MyUMZamMA5lWXnRqE4As3RfO+55gr557QSqbp8DXf\nILANrPHOsdfzDaRAxQuOvhzTiy0bXRZLynBWW3mz65Vawoi3BPOT3mc8bV3vpDvN\nU8+aF4ddmnUG7xX82TwT25HqzQKBgQDIAYsf9o9J/KBIc6Yg13raf1O6fNKzFAhX\nUGNfPqqfv//t1B8aV1G4zTrUAKAjXfGAgfJ41GrKaNzqe6VOhpvGXkj8Om1bWhSc\nckE/X9y0VyE198yQqSbKL04RsSeV+mosTTROu0oNkXvfq8iTs6ZRYpS078cFyNYK\natTFuUXQPwKBgQDHu1PRMEnLlqH4v0gndfqu9qHCksCDYS6+bdy9+ptiunO/wRbg\n2fRTdd4BheZb1iqSjsB47tJIbzBYDyoQNbYeRztXE/S1F554zx7R6E4bP1sNNSU2\nMSx5z9t6BGFMRft1YNFHTmmtfPnNIp1qFphMBzixdOkPa9Tv3y8PlesbtQKBgQCg\ndSyKriJy9ywYNEAZpQY4+WHRAYeAiBfRBPtUVFBK7ZyDz2RMm7VCj9QcdYwEE8BG\nmvpOmgw66zohHKWYhEHBOa9QPAez/GcAxGE4WM4WGLjaNT126V3nY2A8rWXW2xoH\nBMFsULGuhQNehNDcPoq2TGKFbsC7EU82+FJPdr5dvQKBgBMRGfm5t8Fsv/S6rw3+\nn4dAARBdAgWt4tv7Rw8Xe2CKFYqOp4KjtxrUc0s4nslZE0iss8HWowv78p5HAp29\nd6SuFYlrHYuHbe/13y7c8TPaYzurOh/UaJ30Q4S5u6mevd4Ih8dSJhXtdjcQ2w2C\nlSproqavDcOHpgiy4RCLmuFs\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-8vaq2@harvesthero-9b090.iam.gserviceaccount.com",
+  "client_id": "105456911054285910935",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-8vaq2%40harvesthero-9b090.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
