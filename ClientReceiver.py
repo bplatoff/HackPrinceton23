@@ -15,12 +15,15 @@ from DiseaseClassifier import ResNetClassifer
 
 class ReceiveServer():
     def __init__(self, IP, PORT):
+
+        self.is_camera_change = False
+
+        with open('Test Images/switch_camera.txt', 'wb') as file:
+            pickle.dump([self.is_camera_change], file)
         
         # Load the Model
         self.DiseasePredictor = ResNetClassifer(38)
         self.DiseasePredictor.loadModel()
-
-        self.is_camera_change = False
 
         # Set default values in case of failed receiving
         self.start_time = time.time()
@@ -28,7 +31,6 @@ class ReceiveServer():
         self.disease_status = "Healthy"
         self.predicted_probability = 67.345
         self.data = []
-        self.image = 0
 
         # Set up socket
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -37,12 +39,8 @@ class ReceiveServer():
     def sendMessage(self):
         # Sends a True/False message depending on if we want to rotate the camera
 
-        try:
-            with open('Test Images/switch_camera.txt', 'rb') as file:
-                self.is_camera_change = pickle.load(file)[0]
-        except Exception as e:
-            with open('Test Images/switch_camera.txt', 'wb') as file:
-                pickle.dump(self.is_camera_change, file)
+        with open('Test Images/switch_camera.txt', 'rb') as file:
+            self.is_camera_change = pickle.load(file)[0]
 
         print(self.is_camera_change)
 
@@ -53,7 +51,11 @@ class ReceiveServer():
         else:
             message = "continue"
 
-        self.socket.sendall(message.encode("utf-8"))
+        try:
+            self.socket.sendall(message.encode("utf-8"))
+            self.is_camera_change = False
+        except Exception as e:
+            pass #Can't send the message currently
 
     def receiveMessage(self):
 
@@ -98,8 +100,7 @@ class ReceiveServer():
 
         if frame is not None:
             print("Applying Deep Learning Model")
-            # cv2.imwrite('Test Images/CurrentImage.jpg', frame)
-            self.image = frame
+            cv2.imwrite('Test Images/CurrentImage.jpg', frame)
 
             plant_type, disease_status, predicted_probability = self.DiseasePredictor.apply(frame)
 
@@ -107,14 +108,16 @@ class ReceiveServer():
         self.data = [plant_type, disease_status, predicted_probability, additional_parameters['Temperature'], additional_parameters['Humidity'], additional_parameters['Light Value'], additional_parameters['Moisture Value']]
 
         # Dump the new data into the text file
-        # with open('Test Images/newdata.txt', 'wb') as file:
-        #     pickle.dump(data, file)
+        with open('Test Images/newdata.txt', 'wb') as file:
+            pickle.dump(self.data, file)
 
     def runServer(self):
         while True:
             self.sendMessage()
-            self.receiveMessage()
-            time.sleep(.1)
+            try:
+                self.receiveMessage()
+            except Exception as e:
+                pass
 
 IP, PORT = "192.168.1.158", 5010
 clientServer = ReceiveServer(IP, PORT)

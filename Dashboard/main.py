@@ -1,34 +1,20 @@
 import streamlit as st
+import socket
 import pandas as pd
 import matplotlib.pyplot as plt
 import time
-import threading
 from PIL import Image
 from io import BytesIO
-import sys
 import os
 import pickle
-sys.path.insert(0, '..')
-from ClientReceiver import ReceiveServer
-from streamlit import session_state
 
-
-@st.cache_resource
-def set_socket():
-    ## Call function
-    IP, PORT = "192.168.1.158", 5010
-    st.session_state['server'] = ReceiveServer(IP, PORT)
-    st.session_state['server_thread'] = threading.Thread(target=st.session_state['server'].runServer, daemon=True)
-    st.session_state['server_thread'].start()
-
-if __name__ == '__main__':
-    print(os.getcwd())
-    set_socket()
+os.chdir('D:/Rutgers/ExtraProjects/HackPrinceton23/HackPrinceton23/')
 
 def load_data():
-    data = st.session_state['server'].data
-    plant_image = st.session_state['server'].image
+    with open('Test Images/newData.txt', 'rb') as file:
+        data = pickle.load(file)
 
+    plant_image = 'Test Images/CurrentImage.jpg'
     crop = data[0]
     disease_status = data[1]
     percentage_disease = data[2]
@@ -38,14 +24,7 @@ def load_data():
     moisture = int(''.join(filter(str.isdigit, data[6])))
 
     return plant_image, crop, disease_status, percentage_disease, temp, humidity, light, moisture
-
-def runCount():
-    count_val = lambda x: (1 if x > high_temp else 1 if x < low_temp else 0)
-    count_temp = list(map(count_val, sample_data['Temperature'])).count(1)
-    count_val = lambda x: (1 if x > high_h else 1 if x < low_h else 0)
-    count_h = list(map(count_val, sample_data['Humidity'])).count(1)
-
-    return [count_temp, count_h]
+    
 
 #Select Box
 add_selectbox = st.sidebar.selectbox(
@@ -67,6 +46,8 @@ with st.sidebar:
         st.write("Module Disconnected")
 
 
+time.sleep(1)
+
 # Load in arduino and DL data
 plant_image, crop, disease_status, percentage_disease, temp, humidity, light, moisture = load_data()
 
@@ -74,8 +55,16 @@ df = pd.read_csv('HackPrinceton Plant Data.csv')
 low_temp, high_temp = df[df['plant_name'] == crop]['temp_low'].values[0], df[df['plant_name'] == 'Corn']['temp_high'].values[0]
 low_h, high_h = df[df['plant_name'] == crop]['humidity_low'].values[0], df[df['plant_name'] == crop]['humidity_high'].values[0]
 
-sample_data = pd.DataFrame({"Temperature": [24, 25, 27, 28, 28, 28, 28, 29, 30 ,30 ,29, 30 ,30 ,30, 32],
-                            "Humidity": [65, 70, 69, 66, 66, 66, 66, 66, 65, 64, 66, 63, 62, 66, 65]})
+file = open('Test Images/update.txt', 'rb')
+sample_data = pickle.load(file)
+
+def runCount():
+    count_val = lambda x: (1 if x > high_temp else 1 if x < low_temp else 0)
+    count_temp = list(map(count_val, sample_data['Temperature'])).count(1)
+    count_val = lambda x: (1 if x > high_h else 1 if x < low_h else 0)
+    count_h = list(map(count_val, sample_data['Humidity'])).count(1)
+
+    return [count_temp, count_h]
 
 
 sun_light = ["Full Sun", "Part Shade", "Full Shade"]
@@ -89,11 +78,8 @@ with header:
         with st.spinner('Please wait...'):
             time.sleep(.2)
         
-        # Replace with send message code
-        # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # s.connect(("192.168.1.168", 5010))
-        # message = "camera_angle_changed"
-        # s.sendall(message.encode("utf-8"))
+        with open('Test Images/switch_camera.txt', 'wb') as file:
+            pickle.dump([True], file)
 
         st.rerun()
 
@@ -182,17 +168,16 @@ with dataset:
         col2.metric("Sun","{light}".format(light = sun_light[0]) , "33%")
 
 while True:
-    time.sleep(1)
-    with st.spinner('Please wait...'):
-        time.sleep(.2)
+    time.sleep(3)
     
     plant_image, crop, disease_status, percentage_disease, temp, humidity, light, moisture = load_data()
 
+    with open('Test Images/update.txt', 'rb') as file:
+        sample_data = pickle.load(file)
+
+    # Append the new data
     new_row = pd.DataFrame({"Temperature": [temp/100], "Humidity": [humidity/100]})
     sample_data = pd.concat([sample_data, new_row], ignore_index=True)
-
-    st.write(temp)
-    st.write(humidity)
 
     # Drop the first row to keep the DataFrame length consistent
     sample_data = sample_data.drop(sample_data.index[0])

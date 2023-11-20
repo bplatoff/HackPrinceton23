@@ -87,9 +87,8 @@ class ResNetClassifer(nn.Module):
     def loadModel(self):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if not torch.cuda.is_available(): print("WARNING: Model will run extremely slow on cpu")
-        print(os.getcwd())
         if torch.cuda.is_available():
-            self.load_state_dict(torch.load("DiseasedCropClassifier_5epochs_secondIteration.pth"))
+            self.load_state_dict(torch.load("D:/Rutgers/ExtraProjects/HackPrinceton23/HackPrinceton23/DiseasedCropClassifier_5epochs_secondIteration.pth"))
         else:
             print("WARNING: Model will run extremely slow on cpu. If on colab, go to Runtime->Change Runtime Type->Hardware Accelerator->GPU.")
             self.load_state_dict(torch.load("DiseasedCropClassifier_5epochs_secondIteration.pth", map_location=torch.device('cpu')))

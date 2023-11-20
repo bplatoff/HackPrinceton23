@@ -56,8 +56,6 @@ class TransmitServer():
 			
 	def receive_data(self):
 
-		take_photo = True
-
 		try:
 			message = self.client_socket.recv(1024).decode("utf-8")
 			if message == "camera_angle_changed":
@@ -75,10 +73,6 @@ class TransmitServer():
 						take_photo = True
 		except socket.error as e:
 			pass  # No message received, ignore the error
-
-		if take_photo:
-			self.send_data()
-		Timer(5, self.receive_data).start()
 		
 	def capture_image(self):
 
@@ -110,10 +104,13 @@ class TransmitServer():
 			print(f"Error experienced: {e}")
 
 	def run(self):
+		self.client_socket, address = self.server_socket.accept()
+		self.client_socket.setblocking(0)
+		print(f"Connection from {address} has been established.")
 		while True:
-			self.client_socket, address = self.server_socket.accept()
-			print(f"Connection from {address} has been established.")
 			self.receive_data()
+			print("Sending Data...")
+			self.send_data()
 
 
 # Usage
