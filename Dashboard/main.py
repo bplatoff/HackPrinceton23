@@ -1,30 +1,51 @@
 import streamlit as st
-import socket
 import pandas as pd
 import matplotlib.pyplot as plt
 import time
+import threading
 from PIL import Image
 from io import BytesIO
+import sys
 import os
 import pickle
+sys.path.insert(0, '..')
+from ClientReceiver import ReceiveServer
+from streamlit import session_state
 
-os.chdir('D:/Rutgers/ExtraProjects/HackPrinceton23/HackPrinceton23/')
+
+@st.cache_resource
+def set_socket():
+    ## Call function
+    IP, PORT = "192.168.1.158", 5010
+    st.session_state['server'] = ReceiveServer(IP, PORT)
+    st.session_state['server_thread'] = threading.Thread(target=st.session_state['server'].runServer, daemon=True)
+    st.session_state['server_thread'].start()
+
+if __name__ == '__main__':
+    print(os.getcwd())
+    set_socket()
 
 def load_data():
-    with open('Test Images/newData.txt', 'rb') as file:
-        data = pickle.load(file)
+    data = st.session_state['server'].data
+    plant_image = st.session_state['server'].image
 
-    plant_image = 'Test Images/CurrentImage.jpg'
-    crop = "Corn"
-    disease_status = data[0]
-    percentage_disease = data[1]
-    temp = int(''.join(filter(str.isdigit, data[2])))
-    humidity = int(''.join(filter(str.isdigit, data[3])))
-    light = int(''.join(filter(str.isdigit, data[4])))
-    moisture = int(''.join(filter(str.isdigit, data[5])))
+    crop = data[0]
+    disease_status = data[1]
+    percentage_disease = data[2]
+    temp = int(''.join(filter(str.isdigit, data[3])))
+    humidity = int(''.join(filter(str.isdigit, data[4])))
+    light = int(''.join(filter(str.isdigit, data[5])))
+    moisture = int(''.join(filter(str.isdigit, data[6])))
 
     return plant_image, crop, disease_status, percentage_disease, temp, humidity, light, moisture
-    
+
+def runCount():
+    count_val = lambda x: (1 if x > high_temp else 1 if x < low_temp else 0)
+    count_temp = list(map(count_val, sample_data['Temperature'])).count(1)
+    count_val = lambda x: (1 if x > high_h else 1 if x < low_h else 0)
+    count_h = list(map(count_val, sample_data['Humidity'])).count(1)
+
+    return [count_temp, count_h]
 
 #Select Box
 add_selectbox = st.sidebar.selectbox(
@@ -46,8 +67,6 @@ with st.sidebar:
         st.write("Module Disconnected")
 
 
-time.sleep(1)
-
 # Load in arduino and DL data
 plant_image, crop, disease_status, percentage_disease, temp, humidity, light, moisture = load_data()
 
@@ -55,36 +74,11 @@ df = pd.read_csv('HackPrinceton Plant Data.csv')
 low_temp, high_temp = df[df['plant_name'] == crop]['temp_low'].values[0], df[df['plant_name'] == 'Corn']['temp_high'].values[0]
 low_h, high_h = df[df['plant_name'] == crop]['humidity_low'].values[0], df[df['plant_name'] == crop]['humidity_high'].values[0]
 
-file = open('Test Images/update.txt', 'rb')
-sample_data = pickle.load(file)
-
-
-def runCount():
-    count_val = lambda x: (1 if x > high_temp else 1 if x < low_temp else 0)
-    count_temp = list(map(count_val, sample_data['Temperature'])).count(1)
-    count_val = lambda x: (1 if x > high_h else 1 if x < low_h else 0)
-    count_h = list(map(count_val, sample_data['Humidity'])).count(1)
-
-    return [count_temp, count_h]
+sample_data = pd.DataFrame({"Temperature": [24, 25, 27, 28, 28, 28, 28, 29, 30 ,30 ,29, 30 ,30 ,30, 32],
+                            "Humidity": [65, 70, 69, 66, 66, 66, 66, 66, 65, 64, 66, 63, 62, 66, 65]})
 
 
 sun_light = ["Full Sun", "Part Shade", "Full Shade"]
-
-file = open('Test Images/update.txt', 'rb')
-sample_data = pickle.load(file)
-# Append the new data
-sample_data = sample_data.append({"Temperature": temp/100, "Humidity": humidity/100}, ignore_index=True)
-st.write(temp)
-st.write(humidity)
-
-# Drop the first row to keep the DataFrame length consistent
-sample_data = sample_data.drop(sample_data.index[0])
-
-# Reset the index after dropping the row
-sample_data = sample_data.reset_index(drop=True)
-
-with open('Test Images/update.txt', 'wb') as file:
-    pickle.dump(sample_data, file)
 
 with header:
     # st.title("Harvest Hero")
@@ -95,10 +89,11 @@ with header:
         with st.spinner('Please wait...'):
             time.sleep(.2)
         
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect(("192.168.1.168", 5010))
-        message = "camera_angle_changed"
-        s.sendall(message.encode("utf-8"))
+        # Replace with send message code
+        # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # s.connect(("192.168.1.168", 5010))
+        # message = "camera_angle_changed"
+        # s.sendall(message.encode("utf-8"))
 
         st.rerun()
 
@@ -185,19 +180,6 @@ with dataset:
         col1, col2 = st.columns(2)
         col1.metric("Soil Moisture", "{m}%".format(m = moisture/100), "1.2%")
         col2.metric("Sun","{light}".format(light = sun_light[0]) , "33%")
-            
-@st.cache_resource
-def set_socket():
-    ## Call function
-    # message = ClientReceiver.connectServer()
-    message = 'Successfully Connected'
-    print(message)
-
-def main():
-    set_socket()
-
-if __name__ == '__main__':
-    main()
 
 while True:
     time.sleep(1)
@@ -206,9 +188,6 @@ while True:
     
     plant_image, crop, disease_status, percentage_disease, temp, humidity, light, moisture = load_data()
 
-    file = open('Test Images/update.txt', 'rb')
-    sample_data = pickle.load(file)
-    # Append the new data
     new_row = pd.DataFrame({"Temperature": [temp/100], "Humidity": [humidity/100]})
     sample_data = pd.concat([sample_data, new_row], ignore_index=True)
 
